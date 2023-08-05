@@ -49,23 +49,40 @@ namespace FlowerStoreApi.Controllers
             return Ok(bouquets);
         }
 
-        // GET: api/Bouquets/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Bouquet>> GetBouquet(int id)
+        // GET: api/Bouquet/{bouquetId}
+        [HttpGet("{bouquetId}")]
+        public IActionResult GetBouquetDetails(int bouquetId)
         {
-          if (_context.Bouquets == null)
-          {
-              return NotFound();
-          }
-            var bouquet = await _context.Bouquets.FindAsync(id);
+            var bouquet = _context.Bouquets
+                .Include(b => b.BouquetCopmosition)
+                    .ThenInclude(bc => bc.Flower)
+                .FirstOrDefault(b => b.ID == bouquetId);
 
             if (bouquet == null)
             {
-                return NotFound();
+                return NotFound("Bouquet not found.");
             }
 
-            return bouquet;
+            // Создаем анонимный объект с данными о букете и его составе
+            var bouquetWithComposition = new
+            {
+                bouquet.ID,
+                bouquet.Name,
+                bouquet.ImageUrl,
+                bouquet.Description,
+                bouquet.Price,
+                BouquetComposition = bouquet.BouquetCopmosition.Select(bc => new
+                {
+                    bc.ID,
+                    bc.FlowerID,
+                    bc.Quantity,
+                    FlowerName = bc.Flower.Name // Включаем имя цветка
+                })
+            };
+
+            return Ok(bouquetWithComposition);
         }
+
 
         [HttpGet("GetTopSelling")]
         public IActionResult GetTopSelling()
