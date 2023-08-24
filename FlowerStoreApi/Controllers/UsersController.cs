@@ -46,7 +46,8 @@ namespace FlowerStoreApi.Controllers
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == registerModel.Email);
             if (existingUser != null)
             {
-                return Conflict("Пользователь с таким email уже существует.");
+                Message msg = new Message("Пользователь с таким email уже существует.");
+                return Ok(msg);
             }
 
             // Создаем нового пользователя
@@ -61,8 +62,8 @@ namespace FlowerStoreApi.Controllers
 
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
-
-            return Ok("Пользователь успешно зарегистрирован.");
+            Message message = new Message("Пользователь успешно зарегистрирован.");
+            return Ok(message);
         }
 
         private bool UserExists(int id)
