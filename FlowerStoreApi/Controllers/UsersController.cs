@@ -32,11 +32,18 @@ namespace FlowerStoreApi.Controllers
             if (user == null || user.Password != password)
             {
                 // Если пользователь не найден или пароль не совпадает, возвращаем код 401 (Unauthorized)
-                return Unauthorized();
+                return Unauthorized(new UserLoginInfo());
             }
 
+            var userinfo = new UserLoginInfo
+            {
+                id = user.ID,
+                name = user.FirstName
+            };
+
+
             // Пользователь найден, возвращаем код 200 (Ok)
-            return Ok();
+            return Ok(userinfo);
         }
 
         [HttpPost("register")]
