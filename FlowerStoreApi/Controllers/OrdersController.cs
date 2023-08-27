@@ -43,8 +43,9 @@ namespace FlowerStoreApi.Controllers
                 };
 
                 _context.Orders.Add(newOrder);
-                
+                await _context.SaveChangesAsync();
 
+                Console.WriteLine(newOrder.ID);
                 foreach (var bouquet in createOrderDTO.OrderedBouquets)
                 {
                     var newOrderedBouquets = new OrderedBouquets
@@ -53,6 +54,8 @@ namespace FlowerStoreApi.Controllers
                         BouquetID = bouquet.BouquetID,
                         Quantity = bouquet.Quantity
                     };
+
+                    _context.OrderedBouquets.Add(newOrderedBouquets);
                 }
 
                 await _context.SaveChangesAsync();

@@ -73,6 +73,46 @@ namespace FlowerStoreApi.Controllers
             return Ok(message);
         }
 
+        // GET: api/User/{userId}/Orders
+        [HttpGet("{userId}/Orders")]
+        public IActionResult GetUserOrders(int userId)
+        {
+            try
+            {
+                var user = _context.Users.Include(u => u.Orders)
+                                         .ThenInclude(o => o.OrderedBouquets)
+                                         .ThenInclude(ob => ob.Bouquet)
+                                         .SingleOrDefault(u => u.ID == userId);
+
+                if (user == null)
+                {
+                    return NotFound($"User with ID {userId} not found.");
+                }
+
+                var userOrders = user.Orders.Select(order => new
+                {
+                    OrderId = order.ID,
+                    OrderDate = order.OrderDate.ToShortDateString(),
+                    Address = $"{order.City}, {order.Street}, {order.House}, {order.Apartment}",
+                    Bouquets = order.OrderedBouquets.Select(ob => new
+                    {
+                        ID = ob.Bouquet.ID,
+                        Name = ob.Bouquet.Name,
+                        ImageUrl = ob.Bouquet.ImageUrl,
+                        Quantity = ob.Quantity,
+                        Price = ob.Bouquet.Price
+                    }),
+                });
+
+                return Ok(userOrders);
+            }
+            catch (Exception ex)
+            {
+                // Handle exception and return appropriate response
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
+
         private bool UserExists(int id)
         {
             return (_context.Users?.Any(e => e.ID == id)).GetValueOrDefault();
