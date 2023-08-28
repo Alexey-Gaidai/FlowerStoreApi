@@ -113,6 +113,35 @@ namespace FlowerStoreApi.Controllers
             }
         }
 
+        [HttpGet("{userId}")]
+        public IActionResult GetUserById(int userId)
+        {
+            try
+            {
+                var user = _context.Users.SingleOrDefault(u => u.ID == userId);
+
+                if (user == null)
+                {
+                    return NotFound($"User with ID {userId} not found.");
+                }
+
+                var userInfo = new
+                {
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Phone = user.Phone,
+                    Email = user.Email
+                };
+
+                return Ok(userInfo);
+            }
+            catch (Exception ex)
+            {
+                // Handle exception and return appropriate response
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
+
         private bool UserExists(int id)
         {
             return (_context.Users?.Any(e => e.ID == id)).GetValueOrDefault();

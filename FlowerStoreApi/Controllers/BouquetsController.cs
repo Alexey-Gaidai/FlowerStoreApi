@@ -84,23 +84,49 @@ namespace FlowerStoreApi.Controllers
         }
 
 
-        [HttpGet("GetTopSelling")]
-        public IActionResult GetTopSelling()
+        [HttpGet("TopSelling")]
+        public IActionResult GetTopSellingBouquets()
         {
-            var topBouquets = _context.OrderedBouquets
-                .GroupBy(ob => ob.Bouquet)
-                .OrderByDescending(group => group.Sum(ob => ob.Quantity))
-                .Take(10)
-                .Select(group => group.Key)
-                .ToList();
-
-            if (topBouquets == null || topBouquets.Count == 0)
+            try
             {
-                return NotFound("No bouquets found.");
-            }
+                var topBouquets = _context.Bouquets
+                    .Include(b => b.OrderedBouquets)
+                    .OrderByDescending(b => b.OrderedBouquets.Sum(ob => ob.Quantity))
+                    .Take(10)
+                    .ToList();
 
-            return Ok(topBouquets);
+                return Ok(topBouquets);
+            }
+            catch (Exception ex)
+            {
+                // Handle exception and return appropriate response
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
         }
+
+        [HttpGet("TopSellingWithRoses")]
+        public IActionResult GetTopSellingBouquetsWithRoses()
+        {
+            try
+            {
+                var topBouquetsWithRoses = _context.Bouquets
+                    .Include(b => b.OrderedBouquets)
+                    .Include(b => b.BouquetCopmosition)
+                        .ThenInclude(bc => bc.Flower)
+                    .Where(b => b.BouquetCopmosition.Any(bc => bc.Flower.Name.Contains("Роза")))
+                    .OrderByDescending(b => b.OrderedBouquets.Sum(ob => ob.Quantity))
+                    .Take(10)
+                    .ToList();
+
+                return Ok(topBouquetsWithRoses);
+            }
+            catch (Exception ex)
+            {
+                // Handle exception and return appropriate response
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
+
 
         private bool BouquetExists(int id)
         {
